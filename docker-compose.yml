@@ -1,0 +1,41 @@
+version: '3.8'
+services:
+  bpi-collector:
+    build: .
+    container_name: bpi_collector
+    # mount workspace into container so logs and outputs are visible on host
+    volumes:
+      - ./:/app
+      - ./data:/app/data
+    environment:
+      # example env fallbacks for SMTP; override in a .env file or your shell
+      - SMTP_SERVER=${SMTP_SERVER:-smtp.gmail.com}
+      - SMTP_PORT=${SMTP_PORT:-587}
+      - SMTP_USERNAME=${SMTP_USERNAME:-your.email@gmail.com}
+      - SMTP_PASSWORD=${SMTP_PASSWORD:-your_app_password}
+      - EMAIL_FROM=${EMAIL_FROM:-your.email@gmail.com}
+      - EMAIL_TO=${EMAIL_TO:-recipient@example.com}
+      - SAMPLES=${SAMPLES:-10}
+      - INTERVAL=${INTERVAL:-5}
+      - PYTHONUNBUFFERED=1
+    # use environment variables for samples and interval
+    command: ["--samples", "${SAMPLES:-10}", "--interval", "${INTERVAL:-5}"]
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    tty: true
+
+  dashboard:
+    build: .
+    container_name: bpi_dashboard
+    volumes:
+      - ./:/app
+      - ./data:/app/data
+    ports:
+      - "8000:8000"
+    # override the image ENTRYPOINT (which defaults to the collector script)
+    entrypoint: ["python", "dashboard.py"]
+    environment:
+      - FLASK_ENV=production

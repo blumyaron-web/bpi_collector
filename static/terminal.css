@@ -1,0 +1,260 @@
+@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&display=swap');
+
+:root {
+  --terminal-bg: #000000;
+  --terminal-text: #33ff33;
+  --terminal-header: #000000;
+  --terminal-accent: #33ff33;
+  --terminal-border: #1a1a1a;
+  --terminal-success: #33ff33;
+  --terminal-warning: #ffff33;
+  --terminal-error: #ff3333;
+  --panel-bg: rgba(0, 0, 0, 0.9);
+  --divider: #1a1a1a;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--terminal-bg);
+  color: var(--terminal-text);
+  font-family: 'Fira Code', monospace;
+  line-height: 1.5;
+  padding: 20px;
+}
+
+.term {
+  background: var(--terminal-header);
+  border: 1px solid var(--terminal-border);
+  border-radius: 6px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  margin: 0 auto;
+  max-width: 1400px;
+  overflow: hidden;
+}
+
+.term-header {
+  background: var(--terminal-header);
+  border-bottom: 1px solid var(--terminal-border);
+  color: var(--terminal-accent);
+  font-size: 14px;
+  font-weight: 600;
+  padding: 12px 16px;
+  position: relative;
+}
+
+.term-header::before {
+  content: "●";
+  color: var(--terminal-success);
+  margin-right: 8px;
+}
+
+.term-body {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 20px;
+  max-width: 1800px;
+  margin: 0 auto;
+}
+
+.chart-row {
+  width: 100%;
+  height: 250px;
+}
+
+.data-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  width: 100%;
+}
+
+.panel {
+  min-width: 0; /* Allow panels to shrink if needed */
+}
+
+.panel {
+  background: var(--panel-bg);
+  border: 1px solid var(--terminal-accent);
+  border-radius: 0;
+  padding: 20px;
+  position: relative;
+  width: 100%;
+  box-shadow: 0 0 10px rgba(51, 255, 51, 0.1);
+}
+
+.panel:hover {
+  box-shadow: 0 0 15px rgba(51, 255, 51, 0.2);
+}
+
+.panel::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--terminal-accent), transparent);
+}
+
+h3 {
+  color: var(--terminal-accent);
+  font-size: 14px;
+  margin-bottom: 16px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.chart-container {
+  background: var(--panel-bg);
+  border-radius: 4px;
+  padding: 16px;
+  height: 100%;
+  width: 100%;
+}
+
+.samples-wrap {
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+@media (max-width: 1200px) {
+  .data-row {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+}
+
+#chart {
+  background: var(--terminal-bg);
+  border-radius: 4px;
+  padding: 8px;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.samples-wrap {
+  max-height: 300px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--terminal-border) transparent;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+th, td {
+  border-bottom: 1px solid var(--terminal-border);
+  padding: 8px 12px;
+  text-align: left;
+}
+
+th {
+  color: var(--terminal-accent);
+  font-weight: 500;
+  text-transform: uppercase;
+  font-size: 12px;
+}
+
+td {
+  font-variant-numeric: tabular-nums;
+}
+
+.gauges {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.gauge {
+  background: var(--terminal-bg);
+  border: 1px solid var(--terminal-accent);
+  padding: 16px;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.gauge:hover {
+  box-shadow: 0 0 10px rgba(51, 255, 51, 0.2);
+}
+
+.gauge-label {
+  color: var(--terminal-accent);
+  font-size: 12px;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.gauge-value {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--terminal-success);
+  font-variant-numeric: tabular-nums;
+}
+
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background: var(--terminal-bg);
+  border-radius: 4px;
+}
+
+.status::before {
+  content: "⬤";
+  font-size: 10px;
+}
+
+.status.active::before {
+  color: var(--terminal-success);
+}
+
+.status.error::before {
+  color: var(--terminal-error);
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--terminal-border);
+  border-radius: 4px;
+}
+
+.sample-counter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background: var(--terminal-bg);
+  border-radius: 4px;
+  margin-bottom: 16px;
+}
+
+.counter-value {
+  color: var(--terminal-success);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.divider {
+  height: 1px;
+  background: var(--divider);
+  margin: 20px 0;
+}
+
+

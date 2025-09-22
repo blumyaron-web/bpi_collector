@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>BPI Collector — Terminal Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="/static/terminal.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+      function updateProgress() {
+        fetch('/progress')
+          .then(response => response.json())
+          .then(data => {
+            const progressBar = document.getElementById('collection-progress');
+            const progressText = document.getElementById('progress-text');
+            const percentage = (data.samples_collected / data.total_samples) * 100;
+            
+            progressBar.style.width = percentage + '%';
+            progressBar.textContent = Math.round(percentage) + '%';
+            progressText.textContent = `Samples: ${data.samples_collected}/${data.total_samples}`;
+            
+            if (data.in_progress) {
+              setTimeout(updateProgress, 5000); // Update every 5 seconds while in progress
+            }
+          });
+      }
+      
+      // Start progress updates when page loads
+      document.addEventListener('DOMContentLoaded', updateProgress);
+    </script>
+  </head>
+  <body>
+    <div class="term">
+      <div class="term-header">BPI Collector — Terminal Dashboard</div>
+      <div class="term-body">
+          <!-- Chart Row -->
+          <div class="chart-row">
+            <div class="panel" style="height: 100%;">
+              <h3>$ Price History</h3>
+              <div class="chart-container">
+                <canvas id="chart"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <!-- Data Row -->
+          <div class="data-row">
+            <!-- Status Panel -->
+            <div class="panel">
+              <h3>System Status</h3>
+              <div class="status active">
+                <span id="status">Connected</span>
+              </div>
+              <div class="progress-container" style="margin-top: 10px;">
+                <div class="progress-bar" id="collection-progress" style="width: 0%">0%</div>
+              </div>
+              <div id="progress-text" style="margin-top: 5px; font-size: 12px;">
+                Samples: 0/0
+              </div>
+            </div>
+
+            <!-- Price Range Panel -->
+            <div class="panel">
+              <h3>Price Range</h3>
+              <div class="gauges">
+                <div class="gauge">
+                  <div class="gauge-label">Minimum</div>
+                  <div id="gauge-min" class="gauge-value">—</div>
+                </div>
+                <div class="gauge">
+                  <div class="gauge-label">Maximum</div>
+                  <div id="gauge-max" class="gauge-value">—</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Latest Samples -->
+            <div class="panel">
+              <h3>Latest Samples</h3>
+              <div class="sample-counter">
+                <span>Total Samples</span>
+                <span id="sample-count" class="counter-value">0</span>
+              </div>
+              <div class="samples-wrap">
+                <table id="samples">
+                  <thead>
+                    <tr>
+                      <th>Timestamp</th>
+                      <th>Price (USD)</th>
+                      <th>Change</th>
+                    </tr>
+                  </thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+      </div>
+    </div>
+
+    <script src="/static/live.js"></script>
+  </body>
+</html>

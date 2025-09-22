@@ -1,0 +1,15 @@
+.venv
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+env/
+build/
+dist/
+.pytest_cache
+.mypy_cache
+*.egg-info
+venv/
+data/
+bpi_data.json
+bpi_graph.png

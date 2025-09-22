@@ -1,0 +1,6 @@
+requests
+matplotlib
+python-dotenv
+Flask
+reportlab
+Pillow  # for image handling

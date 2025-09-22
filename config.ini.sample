@@ -1,0 +1,7 @@
+[smtp]
+server = smtp.example.com
+port = 587
+username = projectbpi2@gmail.com
+password = xspz rmnw rygf tnxv
+from = projectbpi2@gmail.com
+to = projectbpi2@gmail.com
