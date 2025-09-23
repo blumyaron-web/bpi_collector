@@ -18,8 +18,8 @@ services:
       - SAMPLES=${SAMPLES:-10}
       - INTERVAL=${INTERVAL:-5}
       - PYTHONUNBUFFERED=1
-    # use environment variables for samples and interval
-    command: ["--samples", "${SAMPLES:-10}", "--interval", "${INTERVAL:-5}"]
+    entrypoint: ["python3"]
+    command: ["bpi_collector.py"]
     logging:
       driver: "json-file"
       options:
@@ -39,3 +39,5 @@ services:
     entrypoint: ["python", "dashboard.py"]
     environment:
       - FLASK_ENV=production
+      - SAMPLES=${SAMPLES:-10}
+      - INTERVAL=${INTERVAL:-5}

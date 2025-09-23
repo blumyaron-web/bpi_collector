@@ -7,6 +7,30 @@
     <link rel="stylesheet" href="/static/terminal.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
+      function updateEmailStatus() {
+        fetch('/email_status')
+          .then(response => response.json())
+          .then(data => {
+            const emailStatus = document.getElementById('email-status');
+            if (data.last_send) {
+              const date = new Date(data.last_send);
+              const formattedDate = date.toLocaleString([], {
+                year: 'numeric',
+                month: 'numeric',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: true
+              });
+              emailStatus.innerHTML = `Last Email: ${formattedDate}<br>Subject: ${data.subject}`;
+              emailStatus.style.color = data.success ? '#4CAF50' : '#f44336';
+            } else {
+              emailStatus.textContent = 'Last Email: Not sent';
+            }
+          });
+      }
+
       function updateProgress() {
         fetch('/progress')
           .then(response => response.json())
@@ -25,8 +49,13 @@
           });
       }
       
-      // Start progress updates when page loads
-      document.addEventListener('DOMContentLoaded', updateProgress);
+      // Start progress and email status updates when page loads
+      document.addEventListener('DOMContentLoaded', () => {
+        updateProgress();
+        updateEmailStatus();
+        // Update email status every 30 seconds
+        setInterval(updateEmailStatus, 30000);
+      });
     </script>
   </head>
   <body>
@@ -56,6 +85,9 @@
               </div>
               <div id="progress-text" style="margin-top: 5px; font-size: 12px;">
                 Samples: 0/0
+              </div>
+              <div id="email-status" style="margin-top: 10px; font-size: 12px;">
+                Last Email: Not sent
               </div>
             </div>
 

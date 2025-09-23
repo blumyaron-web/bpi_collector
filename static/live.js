@@ -2,7 +2,24 @@ let chart = null;
 
 function fmtTime(iso) {
   const d = new Date(iso);
-  return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  return d.toLocaleTimeString([], { 
+    hour: '2-digit', 
+    minute: '2-digit',
+    hour12: true 
+  });
+}
+
+function fmtDateTime(iso) {
+  const d = new Date(iso);
+  return d.toLocaleString([], {
+    year: 'numeric',
+    month: 'numeric',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: true
+  });
 }
 
 async function refresh() {
@@ -92,7 +109,7 @@ async function refresh() {
 
     data.slice(-10).reverse().forEach(s => {
       const tr = document.createElement('tr');
-      const ts = document.createElement('td'); ts.textContent = fmtTime(s.ts); tr.appendChild(ts);
+      const ts = document.createElement('td'); ts.textContent = fmtDateTime(s.ts); tr.appendChild(ts);
       pairs.forEach(p => {
         const td = document.createElement('td');
         const v = s.prices ? s.prices[p] : null;
