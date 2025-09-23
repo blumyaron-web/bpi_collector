@@ -11,22 +11,76 @@
         fetch('/email_status')
           .then(response => response.json())
           .then(data => {
+            // Update latest email status
             const emailStatus = document.getElementById('email-status');
-            if (data.last_send) {
-              const date = new Date(data.last_send);
-              const formattedDate = date.toLocaleString([], {
-                year: 'numeric',
-                month: 'numeric',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit',
-                hour12: true
-              });
-              emailStatus.innerHTML = `Last Email: ${formattedDate}<br>Subject: ${data.subject}`;
-              emailStatus.style.color = data.success ? '#4CAF50' : '#f44336';
+            const latestEmail = data.latest;
+            
+            if (latestEmail && (latestEmail.timestamp || latestEmail.last_send)) {
+              // Use pre-formatted time if available, otherwise format on client-side
+              let displayDate;
+              if (latestEmail.formatted_time) {
+                displayDate = latestEmail.formatted_time;
+              } else {
+                const timestamp = latestEmail.timestamp || latestEmail.last_send;
+                const date = new Date(timestamp);
+                // Convert to Jerusalem time by adding 3 hours to UTC
+                const jerusalemDate = new Date(date.getTime() + (3 * 60 * 60 * 1000));
+                displayDate = jerusalemDate.toLocaleString([], {
+                  year: 'numeric',
+                  month: 'numeric',
+                  day: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                  second: '2-digit',
+                  hour12: true
+                }) + " (Jerusalem)";
+              }
+              
+              emailStatus.innerHTML = `Last Email: ${displayDate}<br>Subject: ${latestEmail.subject || 'No subject'}`;
+              emailStatus.style.color = latestEmail.success ? '#4CAF50' : '#f44336';
             } else {
               emailStatus.textContent = 'Last Email: Not sent';
+            }
+            
+            // Update email history
+            const historyContainer = document.getElementById('email-history');
+            historyContainer.innerHTML = '';
+            
+            if (data.history && data.history.length > 0) {
+              const historyHtml = data.history.map((item, index) => {
+                if (!item || (!item.timestamp && !item.last_send)) return '';
+                
+                // Use pre-formatted time if available, otherwise format on client-side
+                let displayDate;
+                if (item.formatted_time) {
+                  displayDate = item.formatted_time.split(' ').slice(0, 4).join(' '); // Shorter format
+                } else {
+                  const timestamp = item.timestamp || item.last_send;
+                  const date = new Date(timestamp);
+                  // Convert to Jerusalem time by adding 3 hours to UTC
+                  const jerusalemDate = new Date(date.getTime() + (3 * 60 * 60 * 1000));
+                  displayDate = jerusalemDate.toLocaleString([], {
+                    month: 'numeric',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: true
+                  }) + " (J)";
+                }
+                
+                const statusColor = item.success ? '#4CAF50' : '#f44336';
+                const statusIcon = item.success ? '✓' : '✗';
+                
+                return `<div class="email-history-item">
+                  <span class="email-status-icon" style="color: ${statusColor}">${statusIcon}</span>
+                  <span class="email-date">${displayDate}</span>
+                  <span class="email-subject">${item.subject || 'No subject'}</span>
+                </div>`;
+              }).join('');
+              
+              historyContainer.innerHTML = historyHtml;
+            } else {
+              historyContainer.innerHTML = '<div class="email-history-item">No email history</div>';
             }
           });
       }
@@ -88,6 +142,11 @@
               </div>
               <div id="email-status" style="margin-top: 10px; font-size: 12px;">
                 Last Email: Not sent
+              </div>
+              
+              <h4 style="margin-top: 20px; margin-bottom: 5px;">Email History</h4>
+              <div id="email-history" class="email-history">
+                <!-- Email history items will be inserted here -->
               </div>
             </div>
 

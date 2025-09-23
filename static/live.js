@@ -1,24 +1,38 @@
 let chart = null;
 
 function fmtTime(iso) {
+  // Convert UTC ISO string to Jerusalem time (UTC+3)
   const d = new Date(iso);
-  return d.toLocaleTimeString([], { 
+  
+  // JavaScript handles timezone conversion automatically when formatting
+  // but we want to specifically use Jerusalem time (UTC+3)
+  // Add 3 hours to ensure correct Jerusalem time
+  const jerusalemTime = new Date(d.getTime() + (3 * 60 * 60 * 1000));
+  
+  return jerusalemTime.toLocaleTimeString([], { 
     hour: '2-digit', 
     minute: '2-digit',
-    hour12: true 
-  });
+    hour12: true,
+    timeZone: 'Asia/Jerusalem'
+  }) + ' (Jerusalem)';
 }
 
 function fmtDateTime(iso) {
+  // Convert UTC ISO string to Jerusalem time with full date and time
   const d = new Date(iso);
-  return d.toLocaleString([], {
+  
+  // Add 3 hours to ensure correct Jerusalem time
+  const jerusalemTime = new Date(d.getTime() + (3 * 60 * 60 * 1000));
+  
+  return jerusalemTime.toLocaleString([], {
     year: 'numeric',
     month: 'numeric',
     day: 'numeric',
     hour: '2-digit',
     minute: '2-digit',
     second: '2-digit',
-    hour12: true
+    hour12: true,
+    timeZone: 'Asia/Jerusalem'
   });
 }
 
@@ -109,7 +123,13 @@ async function refresh() {
 
     data.slice(-10).reverse().forEach(s => {
       const tr = document.createElement('tr');
-      const ts = document.createElement('td'); ts.textContent = fmtDateTime(s.ts); tr.appendChild(ts);
+      const ts = document.createElement('td'); 
+      
+      // Always display timestamps in local time
+      ts.textContent = fmtDateTime(s.ts);
+      ts.title = "Local time (converted from UTC)"; // Add tooltip to clarify
+      
+      tr.appendChild(ts);
       pairs.forEach(p => {
         const td = document.createElement('td');
         const v = s.prices ? s.prices[p] : null;

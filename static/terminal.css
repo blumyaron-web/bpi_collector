@@ -257,4 +257,44 @@ td {
   margin: 20px 0;
 }
 
+/* Email history styling */
+.email-history {
+  margin-top: 10px;
+  font-size: 12px;
+  max-height: 120px;
+  overflow-y: auto;
+  border-top: 1px solid var(--terminal-border);
+}
+
+.email-history-item {
+  padding: 4px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  display: flex;
+  align-items: center;
+}
+
+.email-status-icon {
+  margin-right: 6px;
+  font-weight: bold;
+}
+
+.email-date {
+  margin-right: 10px;
+  opacity: 0.7;
+  min-width: 90px;
+}
+
+.email-subject {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 180px;
+  opacity: 0.9;
+}
+
+.panel h4 {
+  color: var(--terminal-accent);
+  font-size: 14px;
+  opacity: 0.8;
+}
 

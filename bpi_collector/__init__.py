@@ -7,3 +7,4 @@ from .fetcher import DataFetcher
 from .storage import Storage
 from .grapher import GraphGenerator
 from .emailer import EmailSender
+from .utils import get_price_statistics, validate_smtp_config

@@ -1,9 +1,9 @@
 import time
-from datetime import datetime
 from .config import Config
 from logging import Logger
-from .fetcher import DataFetcher
 from .storage import Storage
+from datetime import datetime
+from .fetcher import DataFetcher
 from .grapher import GraphGenerator
 
 

@@ -1,14 +1,34 @@
 import os
-import base64
 from pathlib import Path
-from datetime import datetime, timezone
-from reportlab.lib import colors
+from datetime import datetime
 from PIL import Image as PILImage
 from typing import List, Dict, Any
 
+from .report_data.images import encode_image_base64
+from .report_data.formatting import (
+    format_timestamp,
+    format_time_short,
+    calculate_duration,
+)
+from .report_data.timestamp_utils import (
+    convert_timestamp_to_datetime,
+    extract_price_stats,
+)
+
+from .report_data.templates import (
+    get_graph_content_template,
+    get_fallback_price_row_template,
+    get_graph_container_template,
+)
+from .report_data.styles import (
+    get_report_styles,
+    get_table_styles,
+    get_fallback_html_template,
+    get_simple_html_template,
+)
+
 from reportlab.lib.units import inch
 from reportlab.lib.pagesizes import letter, landscape
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.platypus import (
     SimpleDocTemplate,
     Paragraph,
@@ -25,106 +45,23 @@ class ReportGenerator:
         self.html_template_path = (
             Path(__file__).parent.parent / "templates" / "report_template_new.html"
         )
-        self.styles = getSampleStyleSheet()
-        self.styles.add(
-            ParagraphStyle(
-                name="BPITitle",
-                parent=self.styles["Heading1"],
-                fontSize=24,
-                spaceAfter=30,
-                textColor=colors.HexColor("#667eea"),
-            )
-        )
-        self.styles.add(
-            ParagraphStyle(
-                name="BPIHeading",
-                parent=self.styles["Heading2"],
-                fontSize=16,
-                spaceAfter=12,
-                textColor=colors.HexColor("#2c3e50"),
-            )
-        )
-        self.styles.add(
-            ParagraphStyle(
-                name="BPIText",
-                parent=self.styles["Normal"],
-                fontSize=12,
-                textColor=colors.HexColor("#333333"),
-            )
-        )
+        self.styles = get_report_styles()
 
     @staticmethod
     def format_timestamp(ts) -> str:
-        if isinstance(ts, str):
-            if ts.endswith("Z"):
-                dt = datetime.fromisoformat(ts.replace("Z", "+00:00"))
-            elif "+" in ts or ts.endswith("UTC"):
-                dt = datetime.fromisoformat(ts.replace("UTC", "").strip())
-            else:
-                # Assume it's a plain ISO format
-                dt = datetime.fromisoformat(ts)
-        else:
-            dt = ts
-
-        # Convert UTC to local time
-        local_dt = dt.astimezone()
-        return local_dt.strftime("%Y-%m-%d %I:%M:%S %p")
+        return format_timestamp(ts)
 
     @staticmethod
     def format_time_short(ts) -> str:
-        if isinstance(ts, str):
-            if ts.endswith("Z"):
-                dt = datetime.fromisoformat(ts.replace("Z", "+00:00"))
-            elif "+" in ts or ts.endswith("UTC"):
-                dt = datetime.fromisoformat(ts.replace("UTC", "").strip())
-            else:
-                dt = datetime.fromisoformat(ts)
-        else:
-            dt = ts
-        # Convert UTC to local time
-        local_dt = dt.astimezone()
-        return local_dt.strftime("%I:%M %p")
+        return format_time_short(ts)
 
-    def calculate_duration(self, start_ts, end_ts) -> str:
-        if isinstance(start_ts, str):
-            if start_ts.endswith("Z"):
-                start_dt = datetime.fromisoformat(start_ts.replace("Z", "+00:00"))
-            elif "+" in start_ts or start_ts.endswith("UTC"):
-                start_dt = datetime.fromisoformat(start_ts.replace("UTC", "").strip())
-            else:
-                start_dt = datetime.fromisoformat(start_ts)
-        else:
-            start_dt = start_ts
-
-        if isinstance(end_ts, str):
-            if end_ts.endswith("Z"):
-                end_dt = datetime.fromisoformat(end_ts.replace("Z", "+00:00"))
-            elif "+" in end_ts or end_ts.endswith("UTC"):
-                end_dt = datetime.fromisoformat(end_ts.replace("UTC", "").strip())
-            else:
-                end_dt = datetime.fromisoformat(end_ts)
-        else:
-            end_dt = end_ts
-
-        duration = end_dt - start_dt
-        hours, remainder = divmod(duration.total_seconds(), 3600)
-        minutes, seconds = divmod(remainder, 60)
-
-        if hours > 0:
-            return f"{int(hours)}h {int(minutes)}m"
-        elif minutes > 0:
-            return f"{int(minutes)}m {int(seconds)}s"
-        else:
-            return f"{int(seconds)}s"
+    @staticmethod
+    def calculate_duration(start_ts, end_ts) -> str:
+        return calculate_duration(start_ts, end_ts)
 
     @staticmethod
     def encode_image_base64(image_path: str) -> str:
-        if not os.path.exists(image_path):
-            return ""
-
-        with open(image_path, "rb") as image_file:
-            encoded = base64.b64encode(image_file.read()).decode("utf-8")
-            return f"data:image/png;base64,{encoded}"
+        return encode_image_base64(image_path)
 
     def generate_html_report(
         self, samples: List[Dict[str, Any]], graph_path: str = None
@@ -141,29 +78,15 @@ class ReportGenerator:
         start_ts = samples[0]["ts"]
         end_ts = samples[-1]["ts"]
 
-        if isinstance(start_ts, str):
-            if start_ts.endswith("Z"):
-                start_time = datetime.fromisoformat(start_ts.replace("Z", "+00:00"))
-            else:
-                start_time = datetime.fromisoformat(start_ts)
-
-        else:
-            start_time = start_ts
-
-        if isinstance(end_ts, str):
-            if end_ts.endswith("Z"):
-                end_time = datetime.fromisoformat(end_ts.replace("Z", "+00:00"))
-            else:
-                end_time = datetime.fromisoformat(end_ts)
-
-        else:
-            end_time = end_ts
+        start_time = convert_timestamp_to_datetime(start_ts)
+        end_time = convert_timestamp_to_datetime(end_ts)
 
         pairs = (
             list(samples[0].get("prices", {}).keys())
             if samples[0].get("prices")
             else []
         )
+
         price_rows = []
 
         btc_prices = [
@@ -171,6 +94,7 @@ class ReportGenerator:
             for s in samples
             if "BTC-USD" in s.get("prices", {})
         ]
+
         if btc_prices:
             min_price = f"${min(btc_prices):,.2f}"
             max_price = f"${max(btc_prices):,.2f}"
@@ -179,17 +103,9 @@ class ReportGenerator:
             min_price = max_price = avg_price = "N/A"
 
         for pair in pairs:
-            prices = []
-            for s in samples:
-                if s.get("prices") and s.get("prices").get(pair) is not None:
-                    prices.append(s["prices"][pair])
+            min_price, max_price, current, change = extract_price_stats(samples, pair)
 
-            if prices:
-                min_price = min(prices)
-                max_price = max(prices)
-                current = prices[-1]
-                change = ((current - prices[0]) / prices[0] * 100) if prices[0] else 0
-
+            if min_price or max_price or current:
                 change_class = (
                     "price-positive"
                     if change > 0
@@ -197,40 +113,42 @@ class ReportGenerator:
                 )
                 change_text = f"{change:+.2f}%" if change != 0 else "0.00%"
 
+                from .report_data.templates import get_price_row_template
+
+                price_row_template = get_price_row_template()
                 price_rows.append(
-                    f"""
-                    <tr>
-                        <td><strong>{pair}</strong></td>
-                        <td>${min_price:,.2f}</td>
-                        <td>${max_price:,.2f}</td>
-                        <td>${current:,.2f}</td>
-                        <td class="{change_class}">{change_text}</td>
-                    </tr>
-                """
+                    price_row_template.format(
+                        pair=pair,
+                        min_price=min_price,
+                        max_price=max_price,
+                        current=current,
+                        change_class=change_class,
+                        change_text=change_text,
+                    )
                 )
 
         graph_content = ""
         if graph_path and os.path.exists(graph_path):
             encoded_image = self.encode_image_base64(graph_path)
             if encoded_image:
-                graph_content = (
-                    f'<img src="{encoded_image}" alt="Bitcoin Price History Graph" />'
+                graph_content = get_graph_content_template(True).format(
+                    encoded_image=encoded_image
                 )
             else:
-                graph_content = '<p style="color: #6c757d; font-style: italic;">Graph not available</p>'
+                graph_content = get_graph_content_template(False)
         else:
-            graph_content = (
-                '<p style="color: #6c757d; font-style: italic;">Graph not available</p>'
-            )
+            graph_content = get_graph_content_template(False)
 
         try:
             duration_str = self.calculate_duration(start_time, end_time)
             duration_seconds = (end_time - start_time).total_seconds()
             interval = duration_seconds / (len(samples) - 1) if len(samples) > 1 else 0
 
+            # Always use local time for the report date
             local_now = datetime.now().astimezone()
             report_html = template.format(
-                report_date=local_now.strftime("%B %d, %Y at %I:%M %p"),
+                report_date=local_now.strftime("%B %d, %Y at %I:%M %p")
+                + " (Local Time)",
                 sample_count=len(samples),
                 collection_period=duration_str,
                 sample_interval=f"{interval:.1f}",
@@ -242,57 +160,47 @@ class ReportGenerator:
             return report_html
         except Exception as e:
             print(f"Template formatting failed: {e}")
-            return f"""
-                <html>
-                <body>
-                <h1>Bitcoin Price Index Report</h1>
-                <p>Report generated on {datetime.now().strftime('%Y-%m-%d %H:%M:%S UTC')}</p>
-                <p>Samples collected: {len(samples)}</p>
-                <table border="1">
-                    <tr><th>Currency Pair</th><th>Latest Price</th></tr>
-                    {''.join(f'<tr><td>{pair}</td><td>${samples[-1]["prices"][pair]:,.2f}</td></tr>' 
-                            for pair in samples[-1]['prices'])}
-                </table>
-                </body>
-                </html>
-            """
+
+            template = get_fallback_price_row_template()
+            price_rows = "".join(
+                template.format(pair=pair, price=samples[-1]["prices"][pair])
+                for pair in samples[-1]["prices"]
+            )
+
+            return get_fallback_html_template().format(
+                current_time=datetime.now().strftime("%Y-%m-%d %H:%M:%S UTC"),
+                sample_count=len(samples),
+                price_rows=price_rows,
+            )
 
     def _generate_simple_html_report(
         self, samples: list, graph_path: str = None
     ) -> str:
+
         start_ts = samples[0]["ts"]
         end_ts = samples[-1]["ts"]
 
-        if isinstance(start_ts, str):
-            if start_ts.endswith("Z"):
-                start_time = datetime.fromisoformat(start_ts.replace("Z", "+00:00"))
-            else:
-                start_time = datetime.fromisoformat(start_ts)
-        else:
-            start_time = start_ts
+        start_time = convert_timestamp_to_datetime(start_ts)
+        end_time = convert_timestamp_to_datetime(end_ts)
 
-        if isinstance(end_ts, str):
-            if end_ts.endswith("Z"):
-                end_time = datetime.fromisoformat(end_ts.replace("Z", "+00:00"))
-            else:
-                end_time = datetime.fromisoformat(end_ts)
-        else:
-            end_time = end_ts
-
-        html = f"""
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-            <h2>BPI Report - {datetime.now().strftime('%Y-%m-%d %H:%M')}</h2>
-            <p><strong>Session:</strong> {self.format_timestamp(start_time)} to {self.format_timestamp(end_time)}</p>
-            <p><strong>Duration:</strong> {self.calculate_duration(start_time, end_time)}</p>
-            <p><strong>Samples:</strong> {len(samples)}</p>
-        """
-
+        graph_content = ""
         if graph_path and os.path.exists(graph_path):
             encoded_image = self.encode_image_base64(graph_path)
             if encoded_image:
-                html += f'<div style="text-align: center; margin: 20px 0;"><img src="{encoded_image}" alt="Price Graph" style="max-width: 100%; height: auto;" /></div>'
+                content = get_graph_content_template(True).format(
+                    encoded_image=encoded_image
+                )
+                graph_content = get_graph_container_template().format(content=content)
 
-        html += "</div>"
+        html = get_simple_html_template().format(
+            report_date=datetime.now().strftime("%Y-%m-%d %H:%M"),
+            start_time=self.format_timestamp(start_time),
+            end_time=self.format_timestamp(end_time),
+            duration=self.calculate_duration(start_time, end_time),
+            sample_count=len(samples),
+            graph_content=graph_content,
+        )
+
         return html
 
     def generate_report(self, samples: list, graph_path: str = None) -> str:
@@ -320,19 +228,11 @@ class ReportGenerator:
             stats_data = []
 
             for pair in pairs:
-                prices = []
-                for s in samples:
-                    if s.get("prices") and s.get("prices").get(pair) is not None:
-                        prices.append(s["prices"][pair])
+                min_price, max_price, current, change = extract_price_stats(
+                    samples, pair
+                )
 
-                if prices:
-                    min_price = min(prices)
-                    max_price = max(prices)
-                    current = prices[-1]
-                    change = (
-                        ((current - prices[0]) / prices[0] * 100) if prices[0] else 0
-                    )
-
+                if min_price or max_price or current:
                     stats_data.append(
                         [
                             pair,
@@ -352,18 +252,7 @@ class ReportGenerator:
             ]
 
             info_table = Table(info_data, colWidths=[2.5 * inch, 4 * inch])
-            info_table.setStyle(
-                TableStyle(
-                    [
-                        ("TEXTCOLOR", (0, 0), (-1, -1), colors.HexColor("#2c3e50")),
-                        ("FONTNAME", (0, 0), (-1, -1), "Helvetica"),
-                        ("FONTSIZE", (0, 0), (-1, -1), 12),
-                        ("GRID", (0, 0), (-1, -1), 1, colors.HexColor("#e9ecef")),
-                        ("BACKGROUND", (0, 0), (0, -1), colors.HexColor("#f8f9fa")),
-                        ("PADDING", (0, 0), (-1, -1), 8),
-                    ]
-                )
-            )
+            info_table.setStyle(TableStyle(get_table_styles()["info_table"]))
 
             story.append(Paragraph("Session Overview", self.styles["BPIHeading"]))
             story.append(info_table)
@@ -381,19 +270,7 @@ class ReportGenerator:
                         1.5 * inch,
                     ],
                 )
-                stats_table.setStyle(
-                    TableStyle(
-                        [
-                            ("TEXTCOLOR", (0, 0), (-1, -1), colors.HexColor("#2c3e50")),
-                            ("FONTNAME", (0, 0), (-1, -1), "Helvetica"),
-                            ("FONTSIZE", (0, 0), (-1, -1), 12),
-                            ("GRID", (0, 0), (-1, -1), 1, colors.HexColor("#e9ecef")),
-                            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#667eea")),
-                            ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
-                            ("PADDING", (0, 0), (-1, -1), 8),
-                        ]
-                    )
-                )
+                stats_table.setStyle(TableStyle(get_table_styles()["stats_table"]))
 
                 story.append(Paragraph("Price Statistics", self.styles["BPIHeading"]))
                 story.append(stats_table)

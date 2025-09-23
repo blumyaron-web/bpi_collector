@@ -6,6 +6,7 @@ from bpi_collector.config import Config
 from bpi_collector.logger import BusinessLogicLogger
 from bpi_collector.collector import BPICollector
 from bpi_collector.emailer import EmailSender
+from bpi_collector.utils import get_price_statistics, validate_smtp_config
 
 
 def load_smtp_config_from_env():
@@ -114,32 +115,12 @@ def main(argv=None):
         samples = collector.storage.read_all()
 
         if samples:
-            first_sample_prices = samples[0].get("prices") or {}
-            if first_sample_prices:
-                first_pair = list(first_sample_prices.keys())[0]
-            else:
-                first_pair = (
-                    cfg.currencies[0] if getattr(cfg, "currencies", None) else "BTC-USD"
-                )
-            vals = [
-                s.get("prices", {}).get(first_pair)
-                for s in samples
-                if s.get("prices") and s.get("prices").get(first_pair) is not None
-            ]
-            max_price = max(vals, default=None)
-
+            first_pair, max_price = get_price_statistics(samples, cfg.currencies)
         else:
             first_pair = next(iter(prices.keys()), "BTC-USD")
             max_price = prices.get(first_pair)
 
-        if all(
-            [
-                smtp_config_env_values["server"],
-                smtp_config_env_values["username"],
-                smtp_config_env_values["password"],
-                smtp_config_env_values["to_address"],
-            ]
-        ):
+        if validate_smtp_config(smtp_config_env_values):
             sender = EmailSender(
                 smtp_server=smtp_config_env_values["server"],
                 smtp_port=smtp_config_env_values["port"],
@@ -147,6 +128,7 @@ def main(argv=None):
                 password=smtp_config_env_values["password"],
                 logger=logger,
             )
+
             subject = f"BPI Test Report - Current {first_pair}: ${max_price:.2f}"
 
             ok = sender.send_report_email(
@@ -167,30 +149,9 @@ def main(argv=None):
 
     samples = collector.run_loop()
     if samples:
-        first_sample_prices = samples[0].get("prices") or {}
-        if first_sample_prices:
-            first_pair = list(first_sample_prices.keys())[0]
-        else:
-            first_pair = (
-                cfg.currencies[0] if getattr(cfg, "currencies", None) else "BTC-USD"
-            )
+        first_pair, max_price = get_price_statistics(samples, cfg.currencies)
 
-        vals = [
-            s.get("prices", {}).get(first_pair)
-            for s in samples
-            if s.get("prices") and s.get("prices").get(first_pair) is not None
-        ]
-
-        max_price = max(vals, default=None)
-
-        if all(
-            [
-                smtp_config_env_values["server"],
-                smtp_config_env_values["username"],
-                smtp_config_env_values["password"],
-                smtp_config_env_values["to"],
-            ]
-        ):
+        if validate_smtp_config(smtp_config_env_values):
             sender = EmailSender(
                 smtp_server=smtp_config_env_values["server"],
                 smtp_port=smtp_config_env_values["port"],
