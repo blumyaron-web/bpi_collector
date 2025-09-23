@@ -1,6 +1,52 @@
+# Python
 __pycache__/
-*.pyc
+*.py[cod]
+*$py.class
+*.so
+.Python
 .env
 .env.*
-*.png
-*.json
+.venv
+venv/
+ENV/
+
+# Data and outputs
+data/*.json
+data/*.png
+bpi_data.json
+*.pdf
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Logs
+*.log
+
+# Runtime files
+*.pid
+
+# Docker
+.docker/
+docker-compose.override.yml
+
+# Reports
+reports/
+*.html
+!templates/*.html
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.coverage
+.coverage.*
+.cache
+coverage.xml
+*.cover
