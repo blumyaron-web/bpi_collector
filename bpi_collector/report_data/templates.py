@@ -1,11 +1,11 @@
 def get_price_row_template():
     return """
     <tr>
-        <td><strong>{pair}</strong></td>
-        <td>${min_price:,.2f}</td>
-        <td>${max_price:,.2f}</td>
-        <td>${current:,.2f}</td>
-        <td class="{change_class}">{change_text}</td>
+        <td style="padding: 10px; text-align: left; border-bottom: 1px solid #ddd;"><strong>{pair}</strong></td>
+        <td style="padding: 10px; text-align: left; border-bottom: 1px solid #ddd;">${min_price:,.2f}</td>
+        <td style="padding: 10px; text-align: left; border-bottom: 1px solid #ddd;">${max_price:,.2f}</td>
+        <td style="padding: 10px; text-align: left; border-bottom: 1px solid #ddd;">${current:,.2f}</td>
+        <td style="padding: 10px; text-align: left; border-bottom: 1px solid #ddd; color: {color}; font-weight: 600;">{change_text}</td>
     </tr>
     """
 
@@ -22,4 +22,4 @@ def get_graph_container_template():
 
 
 def get_fallback_price_row_template():
-    return "<tr><td>{pair}</td><td>${price:,.2f}</td></tr>"
+    return '<tr><td style="padding: 10px; text-align: left;">{pair}</td><td style="padding: 10px; text-align: left;">${price:,.2f}</td><td style="padding: 10px; text-align: left;">-</td><td style="padding: 10px; text-align: left;">-</td><td style="padding: 10px; text-align: left;">-</td></tr>'

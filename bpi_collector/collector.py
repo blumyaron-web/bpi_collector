@@ -2,7 +2,7 @@ import time
 from .config import Config
 from logging import Logger
 from .storage import Storage
-from datetime import datetime
+from datetime import datetime, timezone
 from .fetcher import DataFetcher
 from .grapher import GraphGenerator
 
@@ -17,7 +17,9 @@ class BPICollector:
 
     def run_once(self) -> dict:
         prices = self.fetcher.fetch_prices()
-        self.storage.append_sample(datetime.utcnow(), prices)
+        # Use timezone-aware UTC time with Z suffix
+        now = datetime.now(timezone.utc)
+        self.storage.append_sample(now, prices)
         return prices
 
     def run_loop(self):

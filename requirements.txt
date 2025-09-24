@@ -4,3 +4,4 @@ python-dotenv
 Flask
 reportlab
 Pillow  # for image handling
+tzdata  # for timezone data used by zoneinfo

@@ -81,7 +81,10 @@ def main(argv=None):
     args = parser.parse_args(argv)
 
     if not args.test and not args.send_test:
-        ts = datetime.utcnow().strftime("%Y%m%dT%H%M%SZ")
+        # Use timezone-aware UTC time with Z suffix
+        from datetime import timezone
+
+        ts = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
         data_dir = os.path.join(os.getcwd(), "data")
         os.makedirs(data_dir, exist_ok=True)
         store_name = f"bpi_data_{ts}.json"

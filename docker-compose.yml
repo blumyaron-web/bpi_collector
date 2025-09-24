@@ -17,6 +17,7 @@ services:
       - SAMPLES=${SAMPLES:-10}
       - INTERVAL=${INTERVAL:-5}
       - PYTHONUNBUFFERED=1
+      - TZ=${TZ:-America/New_York}
     entrypoint: ["python3"]
     command: ["bpi_collector.py"]
     logging:
@@ -38,5 +39,6 @@ services:
     entrypoint: ["python", "dashboard.py"]
     environment:
       - FLASK_ENV=production
+      - TZ=${TZ:-America/New_York}
       - SAMPLES=${SAMPLES:-10}
       - INTERVAL=${INTERVAL:-5}

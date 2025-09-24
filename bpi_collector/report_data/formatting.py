@@ -1,23 +1,19 @@
-from datetime import datetime
 from .timestamp_utils import convert_timestamp_to_datetime, convert_utc_to_local
 
 
 def format_timestamp(ts) -> str:
-    """Format a timestamp with date and time in Jerusalem timezone"""
     dt = convert_timestamp_to_datetime(ts)
     local_dt = convert_utc_to_local(dt)
-    return local_dt.strftime("%Y-%m-%d %I:%M:%S %p") + " (Jerusalem)"
+    return local_dt.strftime("%Y-%m-%d %I:%M:%S %p")
 
 
 def format_time_short(ts) -> str:
-    """Format a timestamp with just time in Jerusalem timezone"""
     dt = convert_timestamp_to_datetime(ts)
     local_dt = convert_utc_to_local(dt)
-    return local_dt.strftime("%I:%M %p") + " (J)"
+    return local_dt.strftime("%I:%M %p")
 
 
 def calculate_duration(start_ts, end_ts) -> str:
-    """Calculate the duration between two timestamps"""
     start_dt = convert_timestamp_to_datetime(start_ts)
     end_dt = convert_timestamp_to_datetime(end_ts)
 

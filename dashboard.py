@@ -1,7 +1,11 @@
-from flask import Flask, render_template, send_file, jsonify
 import os
 import glob
 import json
+import configparser
+
+# from zoneinfo import ZoneInfo
+# from datetime import datetime, timezone, timedelta
+from flask import Flask, render_template, send_file, jsonify
 
 app = Flask(__name__, static_folder="static", template_folder="templates")
 
@@ -28,14 +32,11 @@ def get_collection_progress():
         data = json.load(f)
         samples_collected = len(data)
 
-    # First try environment variables
     total_samples = int(os.getenv("SAMPLES", "0"))
 
-    # If not in env, try config file
     if total_samples == 0:
         config_path = os.path.join(os.getcwd(), "config.ini")
         if os.path.exists(config_path):
-            import configparser
 
             config = configparser.ConfigParser()
             config.read(config_path)
@@ -86,12 +87,12 @@ def email_status():
             with open(status_file, "r") as f:
                 data = json.load(f)
 
-                # Format timestamps to local time for display
                 def format_timestamp(ts):
                     if not ts:
                         return None
                     try:
-                        from datetime import datetime, timezone, timedelta
+                        from datetime import datetime, timezone
+                        from zoneinfo import ZoneInfo
 
                         if isinstance(ts, str):
                             if ts.endswith("Z"):
@@ -101,18 +102,15 @@ def email_status():
                         else:
                             dt = ts
 
-                        # Ensure the datetime is timezone-aware
                         if dt.tzinfo is None:
                             dt = dt.replace(tzinfo=timezone.utc)
 
-                        # Convert to Jerusalem timezone (UTC+3)
-                        jerusalem_tz = timezone(timedelta(hours=3))
-                        local_dt = dt.astimezone(jerusalem_tz)
+                        # Use the system's local timezone
+                        local_dt = dt.astimezone()
 
-                        return (
-                            local_dt.strftime("%Y-%m-%d %I:%M:%S %p") + " (Jerusalem)"
-                        )
-                    except Exception:
+                        return local_dt.strftime("%Y-%m-%d %I:%M:%S %p")
+                    except Exception as err:
+                        print(err)
                         return ts
 
                 # Helper to process each status entry
@@ -120,11 +118,9 @@ def email_status():
                     if not isinstance(entry, dict):
                         return entry
 
-                    # If already has formatted_time, use it
                     if "formatted_time" in entry:
                         return entry
 
-                    # Format timestamp if available
                     if "timestamp" in entry:
                         entry["formatted_time"] = format_timestamp(entry["timestamp"])
                     elif "last_send" in entry:
@@ -132,7 +128,6 @@ def email_status():
 
                     return entry
 
-                # Handle both old and new format
                 if isinstance(data, dict):
                     # Old format with single status
                     processed_data = process_entry(data)
@@ -159,7 +154,6 @@ def email_status():
         except Exception as e:
             app.logger.error(f"Error reading email status: {e}")
 
-    # Default response if file doesn't exist or error occurs
     empty_status = {"timestamp": None, "success": False, "subject": None}
     return jsonify({"latest": empty_status, "history": []})
 

@@ -4,76 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BPI Report - {report_date}</title>
-    <style>
-        body {{
-            font-family: Arial, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 20px;
-        }}
-        
-        .header {{
-            margin-bottom: 30px;
-        }}
-        
-        .header h1 {{
-            color: #2c3e50;
-            font-size: 24px;
-            margin-bottom: 10px;
-        }}
-        
-        .summary {{
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 5px;
-            margin-bottom: 20px;
-        }}
-        
-        .price-table {{
-            width: 100%;
-            border-collapse: collapse;
-            margin: 20px 0;
-        }}
-        
-        .price-table th, .price-table td {{
-            padding: 10px;
-            text-align: left;
-            border-bottom: 1px solid #ddd;
-        }}
-        
-        .price-table th {{
-            background: #f1f1f1;
-        }}
-        
-        .stats {{
-            display: flex;
-            justify-content: space-between;
-            margin: 20px 0;
-        }}
-        
-        .stat-box {{
-            background: #f8f9fa;
-            padding: 10px;
-            border-radius: 5px;
-            text-align: center;
-        }}
-        
-        .footer {{
-            margin-top: 30px;
-            font-size: 12px;
-            color: #666;
-        }}
-    </style>
 </head>
-<body>
-    <div class="header">
-        <h1>Bitcoin Price Index Report</h1>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+    <div style="margin-bottom: 30px;">
+        <h1 style="color: #2c3e50; font-size: 24px; margin-bottom: 10px;">Bitcoin Price Index Report</h1>
         <p>Report generated on {report_date}</p>
     </div>
 
-    <div class="summary">
+    <div style="background: #f8f9fa; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
         <strong>Collection Summary:</strong>
         <ul>
             <li>Samples collected: {sample_count}</li>
@@ -83,31 +21,40 @@
     </div>
 
     <h2>Latest Prices</h2>
-    <table class="price-table">
+    <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
         <tr>
-            <th>Currency Pair</th>
-            <th>Latest Price</th>
-            <th>24h Change</th>
+            <th style="padding: 10px; text-align: left; border-bottom: 1px solid #ddd; background: #f1f1f1;">Currency Pair</th>
+            <th style="padding: 10px; text-align: left; border-bottom: 1px solid #ddd; background: #f1f1f1;">Min Price</th>
+            <th style="padding: 10px; text-align: left; border-bottom: 1px solid #ddd; background: #f1f1f1;">Max Price</th>
+            <th style="padding: 10px; text-align: left; border-bottom: 1px solid #ddd; background: #f1f1f1;">Current Price</th>
+            <th style="padding: 10px; text-align: left; border-bottom: 1px solid #ddd; background: #f1f1f1;">Change</th>
         </tr>
         {price_rows}
+        <tr style="background-color: #f8f9fa; border-top: 2px solid #ddd; font-weight: 500;">
+            <td style="padding: 10px; text-align: left; border-bottom: 1px solid #ddd;"><strong>BTC-USD Statistics</strong></td>
+            <td style="padding: 10px; text-align: left; border-bottom: 1px solid #ddd;">{min_price}</td>
+            <td style="padding: 10px; text-align: left; border-bottom: 1px solid #ddd;">{max_price}</td>
+            <td style="padding: 10px; text-align: left; border-bottom: 1px solid #ddd;">{avg_price}</td>
+            <td style="padding: 10px; text-align: left; border-bottom: 1px solid #ddd; font-style: italic;">Summary</td>
+        </tr>
     </table>
 
-    <div class="stats">
-        <div class="stat-box">
+    <div style="display: flex; justify-content: space-between; margin: 20px 0;">
+        <div style="background: #f8f9fa; padding: 10px; border-radius: 5px; text-align: center; width: 30%;">
             <strong>Minimum</strong>
             <div>{min_price}</div>
         </div>
-        <div class="stat-box">
+        <div style="background: #f8f9fa; padding: 10px; border-radius: 5px; text-align: center; width: 30%;">
             <strong>Average</strong>
             <div>{avg_price}</div>
         </div>
-        <div class="stat-box">
+        <div style="background: #f8f9fa; padding: 10px; border-radius: 5px; text-align: center; width: 30%;">
             <strong>Maximum</strong>
             <div>{max_price}</div>
         </div>
     </div>
 
-    <div class="footer">
+    <div style="margin-top: 30px; font-size: 12px; color: #666;">
         <p>For more detailed analysis and real-time updates, please visit the dashboard.</p>
         <p>BPI Collector Service</p>
     </div>

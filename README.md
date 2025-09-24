@@ -2,37 +2,27 @@
 # BPI Collector
 
 A Python utility that:
-- Fetches cryptocurrency prices from Coinbase API (default: BTC-USD## Developer Notes
-
-- Logging outputs to stdout at INFO level
-- Run smoke tests with `--test` flag
-- Future improvements:
-  - Add unit tests
-  - Implement CI/CD
-  - Add rate limiting
-  - Improve error handling
-
-## License
-
-This utility is for demonstration and light monitoring. Use responsibly and avoid excessive API polling.mestamped readings in JSON format
+- Fetches cryptocurrency prices from Coinbase API (default: BTC-USD)
+- Stores timestamped readings in JSON format
 - Generates price trend graphs
 - Sends email reports with maximum price and graph visualizations
 
 The project supports multiple currency pairs and configurable sampling intervals.
 
-## Project Structure
+## Key Components
 
 - `bpi_collector.py` — Main CLI entrypoint
-- `bpi_collector/` — Core package modules:
-    - `collector.py` — Main orchestrator for data collection and processing
-    - `fetcher.py` — API interaction handler
-    - `storage.py` — Data persistence manager
-    - `grapher.py` — Graph generation using matplotlib
-    - `emailer.py` — Email reporting system
-    - `config.py` — Configuration management
-    - `logger.py` — Business logic logging system
-- `config.ini.sample` — SMTP configuration template
-- `requirements.txt` — Project dependencies
+- `bpi_collector/` — Core modules:
+  - `collector.py` — Main orchestrator
+  - `fetcher.py` — API interaction
+  - `storage.py` — Data persistence
+  - `grapher.py` — Visualization
+  - `emailer.py` — Email reporting
+  - `config.py` — Configuration
+  - `logger.py` — Logging system
+- `dashboard.py` — Web interface
+- `config.ini.sample` — Configuration template
+- `docker-compose.yml` — Container orchestration
 
 ## Quick Start
 
@@ -66,71 +56,62 @@ python bpi_collector.py --pairs BTC-USD,ETH-USD
 
 ## Configuration
 
-The program reads SMTP settings from `config.ini` (recommended). Copy the sample and edit values:
+Email settings can be configured in two ways:
 
-```bash
-cp config.ini.sample config.ini
-# edit config.ini and fill in the [smtp] section
-```
+1. **Recommended:** Use `config.ini` file
+   ```bash
+   cp config.ini.sample config.ini
+   ```
+   Edit the `[smtp]` section with your email server details:
+   - `server`, `port`, `username`, `password`, `from` (optional), `to` (recipients)
 
-Important keys in `[smtp]`:
+2. **Alternative:** Use environment variables
+   - `SMTP_SERVER`, `SMTP_PORT`, `SMTP_USERNAME`, `SMTP_PASSWORD`, `EMAIL_FROM`, `EMAIL_TO`
 
-- `server` — SMTP host (e.g. `smtp.gmail.com`)
-- `port` — SMTP port (usually `587` for STARTTLS)
-- `username` — SMTP login
-- `password` — SMTP password or app password
-- `from` — (optional) sender address (defaults to `username`)
-- `to` — comma-separated recipient addresses
+**Note:** Gmail users should use an App Password when 2FA is enabled.
 
-If `config.ini` or any setting is missing, the following environment variables are used as fallbacks (uppercase):
+## How it works
 
-- `SMTP_SERVER`, `SMTP_PORT`, `SMTP_USERNAME`, `SMTP_PASSWORD`, `EMAIL_FROM`, `EMAIL_TO`
-
-Gmail notes: if you use a Gmail account you will typically need to create an App Password (or enable a less secure option where supported). Use the App Password in `smtp.password`.
-
-## How it works (high level)
-
-1. `BPICollector` performs repeated fetches using `DataFetcher`.
-2. Each sample ({timestamp, price}) is appended to `bpi_data.json` by `Storage`.
-3. After the configured number of samples, `GraphGenerator` produces `bpi_graph.png`.
-4. `EmailSender` composes a short report that includes the maximum price over the run and attaches the PNG (if present), then sends via SMTP.
-5. BusinessLogic actions are logged to stdout via `BusinessLogicLogger` to aid debugging.
+1. Fetches cryptocurrency prices at specified intervals
+2. Stores each data point (timestamp, price) to JSON
+3. Generates price trend graph after collection completes
+4. Sends email report with maximum price and attached graph
+5. Logs all actions to stdout for monitoring
 
 ## Troubleshooting
 
-Common issues and solutions:
+Common issues:
 
-1. Missing graph file:
-   - Graphs are only generated after a full collection run
-   - Run a short test: `python bpi_collector.py --samples 5 --interval 2`
+1. **No graph generated**
+   - Graphs only appear after a complete collection run
+   - Try a short test: `python bpi_collector.py --samples 5 --interval 2`
 
-2. Email issues:
-   - Verify SMTP settings in config.ini
-   - Check network connectivity to SMTP server
-   - For Gmail, ensure you're using an App Password with 2FA
+2. **Email problems**
+   - Check SMTP settings in config.ini
+   - For Gmail, use an App Password with 2FA
 
-3. Dependency issues:
-   - Ensure all requirements are installed: `pip install -r requirements.txt`
-   - Check virtual environment activation
+3. **Missing dependencies**
+   - Run `pip install -r requirements.txt`
+   - Verify virtual environment is activated
 
-4. Data formatting:
-   - Timestamps are in UTC
-   - For timezone adjustments, modify grapher.py or storage.py
+4. **Time zone issues**
+   - All timestamps are in UTC
+   - To adjust, modify grapher.py or storage.py
 
 ## Developer Notes
 
-- Logging: the BusinessLogic logger prints INFO and ERROR messages to stdout. Check these logs when debugging runs.
-- Tests: there are no automated unit tests in the repository yet. To manually validate functionality, run the smoke test (`--test`) and a short collection (`--samples 5 --interval 2`) to exercise fetch, storage and graph generation.
-- Adding unit tests and CI is a recommended next step.
+- Logging outputs to stdout at INFO level
+- Run smoke tests with `--test` flag or a short collection (`--samples 5 --interval 2`)
+- Never commit real credentials - keep `config.ini` in `.gitignore` or use environment variables
+- Future improvements:
+  - Add unit tests
+  - Implement CI/CD
+  - Add rate limiting
+  - Improve error handling
 
-## Security and housekeeping
+## License
 
-- Never commit real credentials. Keep `config.ini` in `.gitignore` or use environment variables.
-
-## License / Notes
-
-This is a small utility intended for demonstration and light monitoring. Use responsibly and avoid excessive polling of public APIs.
-
+This utility is for demonstration and light monitoring. Use responsibly and avoid excessive polling of public APIs.
 
 ## Docker Support
 
@@ -138,7 +119,7 @@ This is a small utility intended for demonstration and light monitoring. Use res
 
 1. Start the services:
 ```bash
-docker-compose up -d --build
+docker compose up -d --build
 ```
 
 This will start:
@@ -147,7 +128,7 @@ This will start:
 
 2. View logs:
 ```bash
-docker-compose logs -f
+docker compose logs -f
 ```
 
 ### Manual Docker Usage
@@ -168,8 +149,8 @@ docker run --rm -v "$(pwd)/data:/app/data" \
 ```
 
 ### Docker Tips
-- Data is persisted in the host's `./data` directory
-- Use environment variables or mounted `config.ini` for SMTP settings
-- Dashboard updates automatically when new data is collected
-- Use `./scripts/update_image.sh --compose` to rebuild and restart services
+- Data persists in the host's `./data` directory
+- Configure using environment variables or mounted `config.ini`
+- Web dashboard automatically updates with new data
+- Use `./scripts/update_image.sh --compose` to rebuild services
 

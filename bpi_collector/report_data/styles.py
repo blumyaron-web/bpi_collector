@@ -59,12 +59,18 @@ def get_table_styles():
 def get_fallback_html_template():
     return """
     <html>
-    <body>
-    <h1>Bitcoin Price Index Report</h1>
+    <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+    <h1 style="color: #2c3e50;">Bitcoin Price Index Report</h1>
     <p>Report generated on {current_time}</p>
     <p>Samples collected: {sample_count}</p>
-    <table border="1">
-        <tr><th>Currency Pair</th><th>Latest Price</th></tr>
+    <table border="1" style="width: 100%; border-collapse: collapse;">
+        <tr style="background-color: #f1f1f1;">
+            <th style="padding: 10px; text-align: left;">Currency Pair</th>
+            <th style="padding: 10px; text-align: left;">Min Price</th>
+            <th style="padding: 10px; text-align: left;">Max Price</th>
+            <th style="padding: 10px; text-align: left;">Current Price</th>
+            <th style="padding: 10px; text-align: left;">Change</th>
+        </tr>
         {price_rows}
     </table>
     </body>

@@ -1,38 +1,36 @@
 let chart = null;
 
 function fmtTime(iso) {
-  // Convert UTC ISO string to Jerusalem time (UTC+3)
+  // Convert UTC ISO string to local time
+  // Explicitly convert UTC ISO string to Date object
   const d = new Date(iso);
   
-  // JavaScript handles timezone conversion automatically when formatting
-  // but we want to specifically use Jerusalem time (UTC+3)
-  // Add 3 hours to ensure correct Jerusalem time
-  const jerusalemTime = new Date(d.getTime() + (3 * 60 * 60 * 1000));
-  
-  return jerusalemTime.toLocaleTimeString([], { 
+  // Force browser to use the system's timezone
+  const options = { 
     hour: '2-digit', 
     minute: '2-digit',
-    hour12: true,
-    timeZone: 'Asia/Jerusalem'
-  }) + ' (Jerusalem)';
+    hour12: false, // Use 24-hour format
+    timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone // Use the system timezone explicitly
+  };
+  
+  return d.toLocaleTimeString([], options);
 }
 
 function fmtDateTime(iso) {
-  // Convert UTC ISO string to Jerusalem time with full date and time
+  // Convert UTC ISO string to local time with full date and time
+  // Explicitly convert UTC ISO string to Date object
   const d = new Date(iso);
   
-  // Add 3 hours to ensure correct Jerusalem time
-  const jerusalemTime = new Date(d.getTime() + (3 * 60 * 60 * 1000));
-  
-  return jerusalemTime.toLocaleString([], {
+  // Force browser to use the system's timezone
+  return d.toLocaleString([], {
     year: 'numeric',
     month: 'numeric',
     day: 'numeric',
     hour: '2-digit',
     minute: '2-digit',
     second: '2-digit',
-    hour12: true,
-    timeZone: 'Asia/Jerusalem'
+    hour12: false, // Use 24-hour format
+    timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone // Use the system timezone explicitly
   });
 }
 

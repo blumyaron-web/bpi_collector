@@ -1,10 +1,9 @@
-from datetime import datetime, timezone, timedelta
+from zoneinfo import ZoneInfo
+from datetime import datetime, timezone
 from typing import Union, List, Dict, Any, Tuple
-import time
 
 
 def convert_timestamp_to_datetime(ts: Union[str, datetime]) -> datetime:
-    """Convert timestamp string to datetime object (keeping it in UTC)"""
     if isinstance(ts, str):
         if ts.endswith("Z"):
             return datetime.fromisoformat(ts.replace("Z", "+00:00"))
@@ -15,26 +14,20 @@ def convert_timestamp_to_datetime(ts: Union[str, datetime]) -> datetime:
 
 
 def convert_utc_to_local(dt: Union[str, datetime]) -> datetime:
-    """Convert a UTC datetime to Jerusalem timezone (UTC+3)"""
     if isinstance(dt, str):
         dt = convert_timestamp_to_datetime(dt)
 
-    # Ensure we're working with UTC
     if dt.tzinfo is None:
         dt = dt.replace(tzinfo=timezone.utc)
 
-    # Define Jerusalem timezone (UTC+3)
-    jerusalem_tz = timezone(timedelta(hours=3))
-
-    # Convert to Jerusalem time
-    local_dt = dt.astimezone(jerusalem_tz)
+    # Use the local system timezone instead of hardcoding a specific timezone
+    local_dt = dt.astimezone()
     return local_dt
 
 
 def format_datetime_local(
     dt: Union[str, datetime], include_seconds: bool = True
 ) -> str:
-    """Format a datetime in local timezone with a readable format"""
     local_dt = convert_utc_to_local(dt)
 
     if include_seconds:

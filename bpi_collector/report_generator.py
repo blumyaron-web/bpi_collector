@@ -4,6 +4,7 @@ from datetime import datetime
 from PIL import Image as PILImage
 from typing import List, Dict, Any
 
+from .report_data.templates import get_price_row_template
 from .report_data.images import encode_image_base64
 from .report_data.formatting import (
     format_timestamp,
@@ -106,15 +107,10 @@ class ReportGenerator:
             min_price, max_price, current, change = extract_price_stats(samples, pair)
 
             if min_price or max_price or current:
-                change_class = (
-                    "price-positive"
-                    if change > 0
-                    else "price-negative" if change < 0 else "price-neutral"
+                color = (
+                    "#28a745" if change > 0 else "#dc3545" if change < 0 else "#6c757d"
                 )
                 change_text = f"{change:+.2f}%" if change != 0 else "0.00%"
-
-                from .report_data.templates import get_price_row_template
-
                 price_row_template = get_price_row_template()
                 price_rows.append(
                     price_row_template.format(
@@ -122,7 +118,7 @@ class ReportGenerator:
                         min_price=min_price,
                         max_price=max_price,
                         current=current,
-                        change_class=change_class,
+                        color=color,
                         change_text=change_text,
                     )
                 )
@@ -144,7 +140,7 @@ class ReportGenerator:
             duration_seconds = (end_time - start_time).total_seconds()
             interval = duration_seconds / (len(samples) - 1) if len(samples) > 1 else 0
 
-            # Always use local time for the report date
+            # Ensure we're using the system timezone that's set via TZ environment variable
             local_now = datetime.now().astimezone()
             report_html = template.format(
                 report_date=local_now.strftime("%B %d, %Y at %I:%M %p")
